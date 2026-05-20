@@ -917,9 +917,12 @@ export default function FlashcardApp() {
           max_tokens: 700,
           messages: [{ role: "user", content:
             `Generate 8 ${difficulty} flashcards on: "${topic}". seed=${Date.now()}
-Return ONLY a raw JSON array — no markdown, no backticks, no preamble.
+
+IMPORTANT: Output ONLY raw JSON. Do NOT think out loud. Do NOT include any text before or after the JSON.
+
 Format: [{"front":"question","back":"concise answer with key facts"}]
-Each question must be DIFFERENT from any previous run — vary the topics and angles.` }],
+
+Each question must be DIFFERENT — vary the topics and angles.` }],
         }),
       });
       const data = await res.json();
