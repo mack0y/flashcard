@@ -913,7 +913,7 @@ export default function FlashcardApp() {
           "X-Title": "FlashQuest",
         },
         body: JSON.stringify({
-          model: "openrouter/free",
+          model: "openrouter/owl-alpha",
           max_tokens: 700,
           messages: [{ role: "user", content:
             `Generate 8 ${difficulty} flashcards on: "${topic}". seed=${Date.now()}
@@ -1011,7 +1011,7 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
               </div>
               <div style={{ fontSize: 7, color: "var(--muted)", lineHeight: 1.8, marginTop: 12 }}>
                 Get your free API key at <span style={{ color: "var(--cyan)" }}>openrouter.ai/keys</span>
-                — Model: <span style={{ color: "var(--green)" }}>openrouter/free</span> — auto-routes to free models, no credit cost
+                — Model: <span style={{ color: "var(--green)" }}>openrouter/owl-alpha</span> (free)
                 {apiKey ? (
                   <span style={{ color: "var(--green)", display: "block", marginTop: 4 }}>✓ Key saved to browser storage</span>
                 ) : (
