@@ -675,13 +675,40 @@ body{animation:crt 8s ease-in-out infinite;}
 .flash-overlay.flash-white{background:rgba(255,255,255,0.25);}
 .flash-overlay.flash-gold{background:rgba(255,224,0,0.2);}
 .flash-overlay.flash-red{background:rgba(255,56,85,0.18);}
+
+/* ── TEACHER DASHBOARD ── */
+.teacher-dash{width:100%;max-width:760px;animation:fadeIn 0.4s ease both;}
+.td-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.td-title{font-size:clamp(11px,2.5vw,16px);color:var(--gold);text-shadow:3px 3px 0 #7a5500;display:flex;align-items:center;gap:10px;}
+.td-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+.td-stat{background:#000;border:3px solid var(--gold);box-shadow:3px 3px 0 #000;padding:16px;text-align:center;}
+.td-stat-num{font-size:clamp(18px,3vw,26px);color:var(--gold);display:block;margin-bottom:4px;}
+.td-stat-label{font-size:7px;color:var(--muted);}
+.td-section{margin-bottom:28px;}
+.td-section-title{font-size:8px;color:var(--cyan);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.td-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--cyan),transparent);}
+.td-table{width:100%;border-collapse:collapse;font-size:7px;}
+.td-table th{background:var(--panel);color:var(--muted);padding:8px 6px;text-align:left;border-bottom:3px solid var(--muted);font-weight:normal;}
+.td-table td{padding:8px 6px;border-bottom:2px solid rgba(90,90,138,0.15);color:var(--white);line-height:1.6;}
+.td-table tr:hover td{background:rgba(255,224,0,0.04);}
+.td-deck-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--panel);border:3px solid var(--muted);margin-bottom:8px;box-shadow:3px 3px 0 #000;}
+.td-deck-name{font-size:8px;color:var(--white);}
+.td-deck-info{font-size:6px;color:var(--muted);margin-top:3px;}
+.td-small-btn{background:var(--panel);color:var(--white);border:3px solid var(--muted);padding:8px 14px;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:7px;transition:transform 0.08s;box-shadow:2px 2px 0 #000;white-space:nowrap;}
+.td-small-btn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000;}
+.td-small-btn.red{background:var(--red);border-color:var(--red);color:#fff;}
+.td-small-btn.green{background:var(--green);border-color:var(--green);color:#000;}
+.td-small-btn.cyan{background:var(--cyan);border-color:var(--cyan);color:#000;}
+.td-data-row{display:flex;gap:10px;flex-wrap:wrap;}
+.td-empty{font-size:8px;color:var(--muted);text-align:center;padding:20px;border:3px dashed var(--muted);}
 `;
 
 // ─────────────────────────────────────────────
 //  COMPONENT
 // ─────────────────────────────────────────────
 export default function FlashcardApp() {
-  const [screen, setScreen] = useState("home");
+  const isTeacher = typeof window !== 'undefined' && window.location.pathname.startsWith('/teacher');
+  const [screen, setScreen] = useState(isTeacher ? "teacher-home" : "home");
   const [deckName, setDeckName] = useState("");
   const [cards, setCards] = useState([]);
   const [origCards, setOrigCards] = useState([]);
@@ -717,6 +744,8 @@ export default function FlashcardApp() {
   const gestureRef = useRef({ startX: 0, delta: 0, active: false });
   const suppressClickRef = useRef(false);
   const [isTouch] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const importRef = useRef(null);
   const [difficulty, setDifficulty] = useState("high school");
   const [apiKey, setApiKey] = useState(() => {
     try { return localStorage.getItem("fq_api_key") || ""; }
@@ -951,6 +980,39 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
 
   const restartFull = () => startStudy(origCards, deckName);
 
+  // ── teacher data helpers ──
+  const exportData = () => {
+    const data = { savedDecks, sessionHistory, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `flashquest-data-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.savedDecks) setSavedDecks(data.savedDecks);
+        if (data.sessionHistory) setSessionHistory(data.sessionHistory);
+      } catch { alert("Invalid file format — expected FlashQuest JSON."); }
+    };
+    reader.readAsText(file);
+  };
+
+  const clearAllData = () => {
+    try { localStorage.clear(); } catch {}
+    setSavedDecks([]);
+    setSessionHistory([]);
+    setApiKey("");
+    setMuted(false);
+    setVolume(1.0);
+  };
+
   return (
     <div onClick={initAudio} style={{ minHeight: "100vh", background: "#060614" }}>
       <style>{CSS}</style>
@@ -962,7 +1024,9 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
         <header className="header">
           <div className="logo">
             <div className="logo-sprite" />
-            <div className="logo-text">FLASH<span>QUEST</span></div>
+            <div className="logo-text">
+              {isTeacher ? 'TEACHER' : 'FLASH'}<span>{isTeacher ? ' PANEL' : 'QUEST'}</span>
+            </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
@@ -981,10 +1045,22 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
             >
               ⚙
             </button>
-            {screen !== "home" && (
-              <button className="px-btn ghost" style={{ fontSize: 8 }} onClick={() => setScreen("home")}>
-                ◀ EXIT
-              </button>
+            {isTeacher ? (
+              screen !== "teacher-home" ? (
+                <button className="px-btn ghost" style={{ fontSize: 8 }} onClick={() => setScreen("teacher-home")}>
+                  ◀ DASHBOARD
+                </button>
+              ) : (
+                <button className="px-btn ghost" style={{ fontSize: 8 }} onClick={() => setScreen("home")}>
+                  👤 STUDENT VIEW
+                </button>
+              )
+            ) : (
+              screen !== "home" && (
+                <button className="px-btn ghost" style={{ fontSize: 8 }} onClick={() => setScreen("home")}>
+                  ◀ EXIT
+                </button>
+              )
             )}
           </div>
         </header>
@@ -1189,6 +1265,167 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
                   <div className="stat-box" style={{ padding: 8 }}>
                     <span className="stat-num" style={{ color: "var(--gold)", fontSize: 16 }}>{sessionHistory[0].total}</span>
                     <span className="stat-nm" style={{ fontSize: 6 }}>TOTAL</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════ TEACHER DASHBOARD ═══════════ */}
+        {screen === "teacher-home" && (
+          <div className="teacher-dash">
+            {/* quick stats */}
+            <div className="td-stats">
+              <div className="td-stat">
+                <span className="td-stat-num">{sessionHistory.length}</span>
+                <span className="td-stat-label">SESSIONS</span>
+              </div>
+              <div className="td-stat">
+                <span className="td-stat-num">{sessionHistory.reduce((s, h) => s + h.total, 0)}</span>
+                <span className="td-stat-label">CARDS STUDIED</span>
+              </div>
+              <div className="td-stat">
+                <span className="td-stat-num">
+                  {sessionHistory.length
+                    ? Math.round(sessionHistory.reduce((s, h) => s + h.pct, 0) / sessionHistory.length)
+                    : "--"}%
+                </span>
+                <span className="td-stat-label">AVG SCORE</span>
+              </div>
+            </div>
+
+            {/* saved decks */}
+            <div className="td-section">
+              <div className="td-section-title">📋 SAVED DECKS</div>
+              {savedDecks.length === 0 ? (
+                <div className="td-empty">No saved decks yet. Generate some with the AI tool!</div>
+              ) : (
+                savedDecks.map(deck => (
+                  <div key={deck.name + deck.date} className="td-deck-row">
+                    <div style={{ flex: 1, cursor: "pointer" }} onClick={() => { initAudio(); startStudy(deck.cards, deck.name); }}>
+                      <div className="td-deck-name">{deck.name}</div>
+                      <div className="td-deck-info">{deck.cards.length} cards · {deck.difficulty || "-"} · {new Date(deck.date).toLocaleDateString()}</div>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button className="td-small-btn cyan" onClick={() => { initAudio(); startStudy(deck.cards, deck.name); }}>▶ STUDY</button>
+                      <button className="td-small-btn red" onClick={() => setConfirmAction({ type: "deleteDeck", name: deck.name })}>🗑</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* session history table */}
+            <div className="td-section">
+              <div className="td-section-title">📊 SESSION HISTORY</div>
+              {sessionHistory.length === 0 ? (
+                <div className="td-empty">No sessions yet. Students need to study!</div>
+              ) : (
+                <table className="td-table">
+                  <thead>
+                    <tr>
+                      <th>DATE</th>
+                      <th>DECK</th>
+                      <th>SCORE</th>
+                      <th>✔</th>
+                      <th>✗</th>
+                      <th>TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessionHistory.map((s, i) => (
+                      <tr key={i}>
+                        <td>{new Date(s.date).toLocaleDateString()}</td>
+                        <td>{s.deckName}</td>
+                        <td style={{ color: s.pct >= 80 ? "var(--green)" : s.pct >= 50 ? "var(--gold)" : "var(--red)" }}>{s.pct}%</td>
+                        <td style={{ color: "var(--green)" }}>{s.known}</td>
+                        <td style={{ color: "var(--red)" }}>{s.review}</td>
+                        <td>{s.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* per-deck progress */}
+            {sessionHistory.length > 0 && (
+              <div className="td-section">
+                <div className="td-section-title">📈 PER-DECK PROGRESS</div>
+                {Object.entries(sessionHistory.reduce((acc, s) => {
+                  if (!acc[s.deckName]) acc[s.deckName] = [];
+                  acc[s.deckName].push(s);
+                  return acc;
+                }, {})).map(([name, sessions]) => {
+                  const avg = Math.round(sessions.reduce((a, s) => a + s.pct, 0) / sessions.length);
+                  const best = Math.max(...sessions.map(s => s.pct));
+                  return (
+                    <div key={name} className="td-deck-row" style={{ cursor: "default" }}>
+                      <div>
+                        <div className="td-deck-name">{name}</div>
+                        <div className="td-deck-info">{sessions.length} session{sessions.length > 1 ? "s" : ""}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                        <span style={{ fontSize: 7, color: "var(--muted)" }}>AVG</span>
+                        <span style={{ fontSize: 12, color: avg >= 80 ? "var(--green)" : avg >= 50 ? "var(--gold)" : "var(--red)" }}>{avg}%</span>
+                        <span style={{ fontSize: 7, color: "var(--muted)" }}>BEST</span>
+                        <span style={{ fontSize: 12, color: "var(--gold)" }}>{best}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* data management */}
+            <div className="td-section">
+              <div className="td-section-title">💾 DATA MANAGEMENT</div>
+              <div className="td-data-row">
+                <button className="td-small-btn green" onClick={exportData}>📥 EXPORT ALL DATA</button>
+                <label className="td-small-btn" style={{ cursor: "pointer", display: "inline-block" }}>
+                  📤 IMPORT DATA
+                  <input
+                    ref={importRef}
+                    type="file"
+                    accept=".json"
+                    style={{ display: "none" }}
+                    onChange={e => { if (e.target.files[0]) { importData(e.target.files[0]); e.target.value = ""; } }}
+                  />
+                </label>
+                <button className="td-small-btn red" onClick={() => setConfirmAction({ type: "clearAll" })}>⚠ CLEAR ALL DATA</button>
+              </div>
+            </div>
+
+            {/* confirmation modal */}
+            {confirmAction && (
+              <div style={{
+                position: "fixed", inset: 0, zIndex: 10000,
+                background: "rgba(0,0,0,0.8)",
+                display: "flex", alignItems: "center", justifyContent: "center", padding: 20
+              }}>
+                <div className="ai-panel" style={{
+                  maxWidth: 400, width: "100%",
+                  borderColor: "var(--red)",
+                  boxShadow: "0 0 0 var(--pixel) #000, var(--px2) var(--px2) 0 var(--pixel) #000, 0 0 40px rgba(255,56,85,0.2)",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 28, marginBottom: 12 }}>⚠</div>
+                  <div style={{ fontSize: 8, color: "var(--white)", lineHeight: 1.8, marginBottom: 16 }}>
+                    {confirmAction.type === "deleteDeck"
+                      ? `Delete deck "${confirmAction.name}" and all its cards? This cannot be undone.`
+                      : "Delete ALL saved data? This includes all decks, sessions, and settings. Cannot be undone."}
+                  </div>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                    <button className="td-small-btn" style={{ minWidth: 100 }} onClick={() => setConfirmAction(null)}>CANCEL</button>
+                    <button className="td-small-btn red" style={{ minWidth: 100 }} onClick={() => {
+                      if (confirmAction.type === "deleteDeck") {
+                        setSavedDecks(prev => prev.filter(d => d.name !== confirmAction.name));
+                      } else if (confirmAction.type === "clearAll") {
+                        clearAllData();
+                      }
+                      setConfirmAction(null);
+                    }}>CONFIRM</button>
                   </div>
                 </div>
               </div>

@@ -60,7 +60,22 @@
 - Countdown timer + reveal button both remain in DOM with `visibility: hidden` when flipped — preserves layout space
 - `.card-scene.flipped { margin-bottom: 100px }` — generous breathing room between card bottom and mark buttons when flipped
 
-### Persistence (localStorage)
+#### Teacher Dashboard
+- 👨‍🏫 **Separate teacher mode** at `/teacher` URL path — no links or hints visible on student mode (`/`)
+- 📊 **Quick Stats** — total sessions, cards studied, average score across all sessions
+- 📋 **Saved Decks manager** — view all AI-generated decks with STUDY and DELETE buttons
+- 📊 **Session History table** — date, deck name, score (color-coded), known/review counts
+- 📈 **Per-Deck Progress** — aggregate stats per deck: number of sessions, average score, best score
+- 💾 **Data Management**:
+  - 📥 **Export all data** — downloads `flashquest-data-*.json` with saved decks + session history
+  - 📤 **Import data** — upload a previously exported JSON file to restore data
+  - ⚠ **Clear all data** — wipes localStorage and resets all state
+- 🛡️ **Confirmation modal** for destructive actions (delete deck / clear all data) with CANCEL / CONFIRM
+- 🔄 **Navigation**: Teacher can study decks from dashboard → study screen → results → back to dashboard
+  - Header shows `◀ DASHBOARD` when on student/study/results screens
+  - Header shows `👤 STUDENT VIEW` when on dashboard (switches to student home)
+
+## Persistence (localStorage)
 - `fq_api_key` — OpenRouter API key
 - `fq_muted` / `fq_volume` — sound preferences
 - `fq_saved_decks` — AI-generated decks (name, cards, difficulty, date)
