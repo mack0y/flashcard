@@ -78,13 +78,32 @@ class SoundEngine {
     this._note(392, 0.4, 0.15, "sawtooth", 0.08);
   }
 
-  // ── ambient reading music (triumphant / exciting reveal) ──
-  startAmbience() {
+  // ── ambient music — accepts style: "calm" | "triumphant" | "mysterious" ──
+  startAmbience(style = "triumphant") {
     this.stopAmbience();
     if (!this.ctx) return;
+    if (style === "calm") return this._startAmbCalm();
+    if (style === "mysterious") return this._startAmbMysterious();
+    return this._startAmbTriumphant();
+  }
+
+  // ── calm ambient (original gentle RPG town) ──
+  _startAmbCalm() {
+    const chord = [262, 330, 392];
     const play = () => {
-      // triumphant ascending arpeggio — hopeful RPG discovery vibe
-      // bass pulse
+      chord.forEach(f => this._note(f, 0, 2.2, "sine", 0.055));
+      this._note(523, 0.4, 1.5, "sine", 0.04);
+      this._note(659, 0.8, 1.0, "sine", 0.03);
+      this._note(784, 1.2, 0.8, "sine", 0.025);
+    };
+    play();
+    this._ambTimer = setInterval(play, 2600);
+  }
+
+  // ── triumphant ambient (exciting reveal — default) ──
+  _startAmbTriumphant() {
+    const play = () => {
+      // ascending bass pulse
       this._note(131, 0, 0.15, "square", 0.14);
       this._note(165, 0.22, 0.15, "square", 0.14);
       this._note(175, 0.44, 0.15, "square", 0.14);
@@ -93,13 +112,29 @@ class SoundEngine {
       [262, 330, 392].forEach(f => this._note(f, 0, 0.6, "triangle", 0.10));
       [330, 415, 494].forEach(f => this._note(f, 0.7, 0.6, "triangle", 0.09));
       [392, 494, 587].forEach(f => this._note(f, 1.4, 0.8, "triangle", 0.08));
-      // sparkling high melody (hopeful / exciting)
+      // sparkling high melody
       [784, 0, 659, 0, 880, 784, 1047].forEach((f, i) => {
         if (f > 0) this._note(f, 0.4 + i * 0.18, 0.12, "sine", 0.07);
       });
     };
     play();
     this._ambTimer = setInterval(play, 2400);
+  }
+
+  // ── mysterious ambient (ethereal / exploration) ──
+  _startAmbMysterious() {
+    const play = () => {
+      // deep drone pulsing
+      this._note(98, 0, 0.4, "sawtooth", 0.06);
+      this._note(98, 1.2, 0.4, "sawtooth", 0.06);
+      this._note(98, 2.4, 0.4, "sawtooth", 0.06);
+      // ethereal wandering sine melody (pentatonic)
+      [262, 330, 392, 523, 392, 330].forEach((f, i) => this._note(f, i * 0.5, 0.7, "sine", 0.05));
+      // occasional shimmer
+      [1047, 784, 1319].forEach((f, i) => this._note(f, 0.3 + i * 0.8, 0.25, "sine", 0.035));
+    };
+    play();
+    this._ambTimer = setInterval(play, 3000);
   }
 
   stopAmbience() {
@@ -155,6 +190,7 @@ class SoundEngine {
 }
 
 const SFX = new SoundEngine();
+if (typeof window !== 'undefined') window.SFX = SFX;
 
 // ─────────────────────────────────────────────
 //  DATA
@@ -725,6 +761,10 @@ export default function FlashcardApp() {
     try { return localStorage.getItem("fq_api_key") || ""; }
     catch { return ""; }
   });
+  const [ambientStyle, setAmbientStyle] = useState(() => {
+    try { return localStorage.getItem("fq_ambient_style") || "triumphant"; }
+    catch { return "triumphant"; }
+  });
   // refs that always hold the latest values — fixes stale closure in event handlers
   const flippedRef = useRef(false);
   const resultsRef = useRef([]);
@@ -760,6 +800,10 @@ export default function FlashcardApp() {
     try { localStorage.setItem("fq_sessions", JSON.stringify(sessionHistory)); }
     catch {}
   }, [sessionHistory]);
+  useEffect(() => {
+    try { localStorage.setItem("fq_ambient_style", ambientStyle); }
+    catch {}
+  }, [ambientStyle]);
 
   // ── sync volume/mute to sound engine ──
   useEffect(() => { SFX.setVolume(volume); }, [volume]);
@@ -807,9 +851,9 @@ export default function FlashcardApp() {
       setFlipped(true);
       flippedRef.current = true;
       SFX.stopSuspense();
-      setTimeout(() => { SFX.playReveal(); setTimeout(() => SFX.startAmbience(), 500); }, 50);
+      setTimeout(() => { SFX.playReveal(); setTimeout(() => SFX.startAmbience(ambientStyle), 500); }, 50);
     }
-  }, [countdown, screen]);
+  }, [countdown, screen, ambientStyle]);
 
   // ── save deck to localStorage ──
   const maybeSaveDeck = (cardArr, name) => {
@@ -843,8 +887,8 @@ export default function FlashcardApp() {
     SFX.stopSuspense();
     flash("flash-white", 180);
     setTimeout(() => { SFX.playReveal(); }, 80);
-    setTimeout(() => { SFX.startAmbience(); }, 600);
-  }, []);
+    setTimeout(() => { SFX.startAmbience(ambientStyle); }, 600);
+  }, [ambientStyle]);
 
   // ── mark — reads from refs so it's never stale ──
   const handleMark = useCallback((status) => {
@@ -1107,6 +1151,37 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
                 ) : (
                   <span style={{ color: "var(--green)" }}>✓ Sound at {Math.round(volume * 100)}%</span>
                 )}
+              </div>
+              {/* ambient music style selector */}
+              <div style={{ height: 1, background: "var(--muted)", opacity: 0.3, margin: "16px 0" }} />
+              <div className="ai-head">
+                <span className="ai-chip" style={{ background: "var(--cyan)", color: "#000" }}>🎵 AMBIENT</span>
+                <div className="ai-head-txt" style={{ color: "var(--cyan)" }}>
+                  REVEAL AMBIENT STYLE
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { id: "calm", label: "🌸 Calm", desc: "Gentle, relaxing" },
+                  { id: "triumphant", label: "🔥 Triumphant", desc: "Exciting, heroic" },
+                  { id: "mysterious", label: "🌙 Mysterious", desc: "Ethereal, eerie" },
+                ].map(opt => (
+                  <button key={opt.id} className="px-btn" style={{
+                    flex: 1, minWidth: 100, fontSize: 7, padding: "10px 8px",
+                    background: ambientStyle === opt.id ? "var(--cyan)" : "transparent",
+                    color: ambientStyle === opt.id ? "#000" : "var(--white)",
+                    borderColor: ambientStyle === opt.id ? "var(--cyan)" : "var(--muted)",
+                    textAlign: "center",
+                  }} onClick={() => setAmbientStyle(opt.id)}>
+                    {opt.label}<br />
+                    <span style={{ fontSize: 6, opacity: 0.6 }}>{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+              <div style={{ fontSize: 7, color: "var(--muted)", lineHeight: 1.8, marginTop: 8 }}>
+                {ambientStyle === "calm" && <span style={{ color: "var(--green)" }}>🌸 Calm ambient — relaxing study vibes</span>}
+                {ambientStyle === "triumphant" && <span style={{ color: "var(--gold)" }}>🔥 Triumphant ambient — exciting heroic feel</span>}
+                {ambientStyle === "mysterious" && <span style={{ color: "var(--cyan)" }}>🌙 Mysterious ambient — ethereal & eerie</span>}
               </div>
             </div>
           </div>
