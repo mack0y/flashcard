@@ -719,8 +719,8 @@ export default function FlashcardApp() {
   const [isTouch] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
   const [difficulty, setDifficulty] = useState("high school");
   const [apiKey, setApiKey] = useState(() => {
-    try { return localStorage.getItem("fq_api_key") || "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"; }
-    catch { return "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"; }
+    try { return localStorage.getItem("fq_api_key") || ""; }
+    catch { return ""; }
   });
   // refs that always hold the latest values — fixes stale closure in event handlers
   const flippedRef = useRef(false);
