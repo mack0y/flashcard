@@ -65,28 +65,41 @@ class SoundEngine {
     if (this._suspenseTimer) { clearInterval(this._suspenseTimer); this._suspenseTimer = null; }
   }
 
-  // ── reveal arpeggio ──
+  // ── reveal arpeggio (triumphant fanfare) ──
   playReveal() {
     if (!this.ctx) return;
-    const arp = [262, 330, 392, 494, 523, 659, 784];
-    arp.forEach((f, i) => this._note(f, i * 0.07, 0.18, "square", 0.22));
-    // sparkle layer
-    [1047, 1175, 1319].forEach((f, i) => this._note(f, 0.35 + i * 0.06, 0.12, "sine", 0.10));
+    // punchy ascending fanfare
+    [262, 330, 392, 494, 523, 659, 784, 1047].forEach((f, i) => this._note(f, i * 0.05, 0.22, "square", 0.28));
+    // sparkle shimmer on top
+    [1319, 1568, 1760].forEach((f, i) => this._note(f, 0.35 + i * 0.05, 0.10, "sine", 0.12));
+    // power chord at the end for weight
+    this._note(262, 0.4, 0.15, "sawtooth", 0.08);
+    this._note(330, 0.4, 0.15, "sawtooth", 0.08);
+    this._note(392, 0.4, 0.15, "sawtooth", 0.08);
   }
 
-  // ── ambient reading music (calming RPG town) ──
+  // ── ambient reading music (triumphant / exciting reveal) ──
   startAmbience() {
     this.stopAmbience();
     if (!this.ctx) return;
-    const chord = [262, 330, 392];
     const play = () => {
-      chord.forEach(f => this._note(f, 0, 2.2, "sine", 0.055));
-      this._note(523, 0.4, 1.5, "sine", 0.04);
-      this._note(659, 0.8, 1.0, "sine", 0.03);
-      this._note(784, 1.2, 0.8, "sine", 0.025);
+      // triumphant ascending arpeggio — hopeful RPG discovery vibe
+      // bass pulse
+      this._note(131, 0, 0.15, "square", 0.14);
+      this._note(165, 0.22, 0.15, "square", 0.14);
+      this._note(175, 0.44, 0.15, "square", 0.14);
+      this._note(196, 0.66, 0.15, "square", 0.14);
+      // bright chord stabs
+      [262, 330, 392].forEach(f => this._note(f, 0, 0.6, "triangle", 0.10));
+      [330, 415, 494].forEach(f => this._note(f, 0.7, 0.6, "triangle", 0.09));
+      [392, 494, 587].forEach(f => this._note(f, 1.4, 0.8, "triangle", 0.08));
+      // sparkling high melody (hopeful / exciting)
+      [784, 0, 659, 0, 880, 784, 1047].forEach((f, i) => {
+        if (f > 0) this._note(f, 0.4 + i * 0.18, 0.12, "sine", 0.07);
+      });
     };
     play();
-    this._ambTimer = setInterval(play, 2600);
+    this._ambTimer = setInterval(play, 2400);
   }
 
   stopAmbience() {
