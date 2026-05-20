@@ -12,7 +12,7 @@
 
 ### UI / Theme
 - 🎮 Press Start 2P pixel font, NES-style double borders, CRT scanline overlay, starfield background
-- 📱 Responsive layout, pixel-perfect borders with `box-shadow`
+- 📱 Fully responsive — works on desktop and mobile (iPhone tested at 375px)
 - ⚙ Settings panel (gear icon) — API key input, sound controls, model info
 - 🔊 Sound mute toggle in header with dynamic icon (🔇/🔉/🔊)
 - 📊 Session history — "Last Session" summary card on home screen (deck name, stats, date)
@@ -46,6 +46,14 @@
   - `suppressClickRef` prevents post-swipe click from auto-flipping next card
 - 🎹 Keyboard shortcuts: `SPACE` flip, `ENTER`/`→` got it, `←` review
 - 💾 Sessions saved to localStorage (`fq_sessions`) — deck name, known/review counts, date, percentage
+
+### Mobile Optimization
+- 📱 **Touch device detection** — `isTouch` state (via `ontouchstart` / `maxTouchPoints`) swaps hints for mobile vs desktop
+- 🃏 **Responsive card height** — `clamp(260px, 44vh, 380px)` scales on small screens (iPhone: ~357px, smaller phones: 260px min)
+- 👍 **Touch target sizes** — `min-height: 44px` on mark buttons and results buttons for easy tapping
+- 🚫 **Tap highlight removed** — `-webkit-tap-highlight-color: transparent` on all interactive elements
+- 👆 **Touch-action** — `touch-action: manipulation` on card-scene prevents double-tap zoom, improves swipe responsiveness
+- 💬 **Contextual hints** — Shows `▶ TAP TO REVEAL ◀` and `⇆ TAP card to flip · ← swipe review · → swipe got it` on touch devices (vs keyboard shortcut hints on desktop)
 
 ### Layout / Card Position
 - Card stays in **exact same vertical position** whether flipped or not

@@ -334,6 +334,7 @@ body{animation:crt 8s ease-in-out infinite;}
   box-shadow:0 0 0 var(--pixel) #000, var(--px2) var(--px2) 0 var(--pixel) #000;
   transition:transform 0.1s,box-shadow 0.1s;
   position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
 }
 .subject-btn::before{
   content:'';position:absolute;inset:0;
@@ -393,6 +394,7 @@ body{animation:crt 8s ease-in-out infinite;}
   font-family:'Press Start 2P',monospace;font-size:8px;
   cursor:pointer;white-space:nowrap;
   transition:transform 0.08s,box-shadow 0.08s;
+  -webkit-tap-highlight-color:transparent;
 }
 .px-btn:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000;}
 .px-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 #000;}
@@ -459,10 +461,11 @@ body{animation:crt 8s ease-in-out infinite;}
 /* card scene */
 .card-scene{
   perspective:1400px;
-  width:100%;height:380px;
+  width:100%;height:clamp(260px,44vh,380px);
   margin-bottom:44px;
   cursor:pointer;
   position:relative;z-index:1;
+  touch-action:manipulation;
 }
 .card-scene.flipped{margin-bottom:100px;}
 .card-inner{
@@ -582,12 +585,13 @@ body{animation:crt 8s ease-in-out infinite;}
 }
 .mark-row.visible{opacity:1;transform:none;pointer-events:all;visibility:visible;}
 .mark-btn{
-  flex:1;padding:14px;
+  flex:1;padding:14px 10px;min-height:44px;
   border:var(--pixel) solid #000;
   box-shadow:var(--pixel) var(--pixel) 0 #000;
   font-family:'Press Start 2P',monospace;font-size:8px;
   cursor:pointer;transition:transform 0.08s,box-shadow 0.08s;
   display:flex;align-items:center;justify-content:center;gap:8px;
+  -webkit-tap-highlight-color:transparent;
 }
 .mark-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000;}
 .mark-btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000;}
@@ -644,12 +648,13 @@ body{animation:crt 8s ease-in-out infinite;}
 
 .results-btns{display:flex;flex-direction:column;gap:12px;}
 .results-btn{
-  width:100%;padding:15px;
+  width:100%;padding:15px;min-height:44px;
   border:var(--pixel) solid #000;
   box-shadow:var(--pixel) var(--pixel) 0 #000;
   font-family:'Press Start 2P',monospace;font-size:8px;
   cursor:pointer;transition:transform 0.08s,box-shadow 0.08s;
   display:flex;align-items:center;justify-content:center;gap:10px;
+  -webkit-tap-highlight-color:transparent;
 }
 .results-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000;}
 
@@ -711,6 +716,7 @@ export default function FlashcardApp() {
   const [swiping, setSwiping] = useState(false);
   const gestureRef = useRef({ startX: 0, delta: 0, active: false });
   const suppressClickRef = useRef(false);
+  const [isTouch] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
   const [difficulty, setDifficulty] = useState("high school");
   const [apiKey, setApiKey] = useState(() => {
     try { return localStorage.getItem("fq_api_key") || "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"; }
@@ -1303,7 +1309,7 @@ Each question must be DIFFERENT from any previous run — vary the topics and an
                   <div className="corner bl" /><div className="corner br" />
                   <div className="card-front-label">❓ QUESTION</div>
                   <div className="card-question">{cards[idx]?.front}</div>
-                  <div className="flip-hint">▶ PRESS SPACE OR TAP TO REVEAL ◀</div>
+                  <div className="flip-hint">{isTouch ? '▶ TAP TO REVEAL ◀' : '▶ PRESS SPACE OR TAP TO REVEAL ◀'}</div>
                 </div>
                 {/* BACK */}
                 <div className="card-face card-back">
@@ -1336,12 +1342,20 @@ Each question must be DIFFERENT from any previous run — vary the topics and an
               </button>
             </div>
 
-            <div className="kb-hint">
-              <span className="kbd">SPACE</span> flip &nbsp;·&nbsp;
-              <span className="kbd">ENTER</span> got it &nbsp;·&nbsp;
-              <span className="kbd">←</span> review &nbsp;·&nbsp;
-              <span className="kbd">→</span> got it
-            </div>
+            {isTouch ? (
+              <div className="kb-hint">
+                ⇆ TAP card to flip &nbsp;·&nbsp;
+                ← swipe review &nbsp;·&nbsp;
+                → swipe got it
+              </div>
+            ) : (
+              <div className="kb-hint">
+                <span className="kbd">SPACE</span> flip &nbsp;·&nbsp;
+                <span className="kbd">ENTER</span> got it &nbsp;·&nbsp;
+                <span className="kbd">←</span> review &nbsp;·&nbsp;
+                <span className="kbd">→</span> got it
+              </div>
+            )}
           </div>
         )}
 
