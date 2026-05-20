@@ -146,45 +146,6 @@ const SFX = new SoundEngine();
 // ─────────────────────────────────────────────
 //  DATA
 // ─────────────────────────────────────────────
-const PRESET_DECKS = {
-  "Math / Algebra": [
-    { front: "What is the quadratic formula?", back: "x = (−b ± √(b²−4ac)) / 2a\nSolves ax² + bx + c = 0" },
-    { front: "What is the slope formula?", back: "m = (y₂ − y₁) / (x₂ − x₁)\n'Rise over run' between two points" },
-    { front: "What does FOIL stand for?", back: "First · Outer · Inner · Last\n(a+b)(c+d) = ac + ad + bc + bd" },
-    { front: "State the Pythagorean Theorem", back: "a² + b² = c²\nc is the hypotenuse of a right triangle" },
-    { front: "What is a prime number?", back: "A number > 1 with no divisors except 1 and itself.\nEx: 2, 3, 5, 7, 11, 13..." },
-    { front: "Solve for x: 3x − 7 = 14", back: "x = 7\nStep 1: Add 7 → 3x = 21\nStep 2: Divide by 3 → x = 7" },
-    { front: "What is the area of a circle?", back: "A = πr²\nCircumference = 2πr" },
-    { front: "What is a function in algebra?", back: "Each input (x) maps to exactly one output (y).\nPasses the Vertical Line Test." },
-  ],
-  "World History": [
-    { front: "What triggered World War I?", back: "Assassination of Archduke Franz Ferdinand\nin Sarajevo, June 28, 1914." },
-    { front: "When did World War II end, and how?", back: "1945 — Germany surrendered in May.\nJapan surrendered after atomic bombings." },
-    { front: "What was the French Revolution?", back: "Political upheaval 1789–1799.\nOverthrowed French monarchy, executed Louis XVI." },
-    { front: "What was the Cold War?", back: "USA vs USSR rivalry 1947–1991.\nArms race, proxy wars, Iron Curtain." },
-    { front: "What was the significance of the Magna Carta?", back: "Signed 1215 — limited English king's power.\nFoundation of constitutional law." },
-    { front: "What was the Renaissance?", back: "Cultural rebirth 14th–17th century Italy.\nEmphasized humanism, art, and science." },
-    { front: "What was the Industrial Revolution?", back: "Late 1700s–1800s, began in Britain.\nShifted economies to factory & steam power." },
-    { front: "Who was Napoleon Bonaparte?", back: "French Emperor 1804–1815.\nConquered Europe, defeated at Waterloo." },
-  ],
-  "English / Vocabulary": [
-    { front: "What does 'ubiquitous' mean?", back: "Present or found everywhere simultaneously.\n\"Smartphones are ubiquitous in modern life.\"" },
-    { front: "What is a metaphor?", back: "One thing IS another — no 'like' or 'as'.\nEx: \"Time is a thief.\"" },
-    { front: "What does 'ephemeral' mean?", back: "Lasting only a very short time; fleeting.\n\"The ephemeral beauty of cherry blossoms.\"" },
-    { front: "Affect vs. Effect?", back: "Affect = verb (to influence)\nEffect = noun (the result)" },
-    { front: "What is an allegory?", back: "Narrative where characters symbolize deeper meanings.\nEx: Animal Farm = critique of Stalinism." },
-    { front: "What does 'juxtaposition' mean?", back: "Placing two contrasting things side by side\nto highlight their differences." },
-    { front: "What does 'ambiguous' mean?", back: "Open to more than one interpretation.\n\"The poem's ending is deliberately ambiguous.\"" },
-    { front: "What is a thesis statement?", back: "Sentence stating the main argument of an essay.\nMust be specific and arguable." },
-  ],
-};
-
-const SUBJECTS = [
-  { name: "Math / Algebra",       emoji: "📐", color: "#00e5ff", shadow: "#006080" },
-  { name: "World History",        emoji: "🌍", color: "#ff6b35", shadow: "#7a2800" },
-  { name: "English / Vocabulary", emoji: "📚", color: "#c97bff", shadow: "#5a0080" },
-];
-
 const COUNTDOWN_SEC = 8;
 
 // ─────────────────────────────────────────────
@@ -837,10 +798,9 @@ export default function FlashcardApp() {
     }
   }, [countdown, screen]);
 
-  // ── save deck to localStorage (skip presets) ──
+  // ── save deck to localStorage ──
   const maybeSaveDeck = (cardArr, name) => {
-    const isPreset = Object.keys(PRESET_DECKS).includes(name) || name.endsWith("(Review)");
-    if (isPreset) return;
+    if (name.endsWith("(Review)")) return;
     setSavedDecks(prev => {
       const filtered = prev.filter(d => d.name !== name);
       const entry = { name, cards: cardArr, difficulty, date: Date.now() };
@@ -1144,69 +1104,8 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
           <div className="home">
             <div className="hero-title">▶ STUDY MODE ACTIVATED</div>
             <div className="hero-sub">
-              Pick a subject or generate a custom AI deck.<br />
+              Pick a deck to study.<br />
               Your brain is the final boss. 🧠
-            </div>
-
-            <div className="section-label">READY-MADE DECKS</div>
-            <div className="subjects-grid">
-              {SUBJECTS.map(s => (
-                <button key={s.name} className="subject-btn" onClick={() => { initAudio(); startStudy(PRESET_DECKS[s.name], s.name); }}>
-                  <span className="sub-emoji">{s.emoji}</span>
-                  <div className="sub-name">{s.name}</div>
-                  <div className="sub-count">{PRESET_DECKS[s.name].length} CARDS</div>
-                  <div className="sub-bar"><div className="sub-bar-fill" style={{ background: s.color }} /></div>
-                </button>
-              ))}
-            </div>
-
-            <div className="section-label">AI DECK GENERATOR</div>
-            <div className="ai-panel">
-              <div className="ai-head">
-                <span className="ai-chip">✦ AI</span>
-                <div className="ai-head-txt">TYPE ANY TOPIC → GET 8 CARDS</div>
-                <span style={{ marginLeft: "auto", fontSize: 10 }} title={apiKey ? "API key configured" : "No API key set"}>
-                  {apiKey ? "🔑" : "❌"}
-                </span>
-              </div>
-              <div className="ai-row">
-                <input
-                  className="ai-input"
-                  placeholder="e.g. Photosynthesis, Civil War, Derivatives..."
-                  value={topic}
-                  onChange={e => setTopic(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && generate()}
-                />
-                <button className="px-btn cyan" onClick={generate} disabled={loading || !topic.trim() || !apiKey}>
-                  {loading ? <><span className="spinner" /> GEN...</> : "✦ GO"}
-                </button>
-              </div>
-              {/* difficulty selector */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 7, color: "var(--muted)", letterSpacing: "0.1em" }}>🎓 LEVEL</span>
-                {["high school", "college", "expert"].map(level => (
-                  <button
-                    key={level}
-                    className="px-btn"
-                    style={{
-                      fontSize: 7,
-                      padding: "6px 12px",
-                      background: difficulty === level ? "var(--cyan)" : "transparent",
-                      color: difficulty === level ? "#000" : "var(--white)",
-                      borderColor: difficulty === level ? "var(--cyan)" : "var(--muted)",
-                    }}
-                    onClick={() => setDifficulty(level)}
-                  >
-                    {level === "high school" ? "📘" : level === "college" ? "📗" : "📕"} {level.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              {!apiKey && (
-                <div className="err-msg" style={{ color: "var(--gold)", marginTop: 8, fontSize: 7 }}>
-                  ⚙ Click the gear icon ⚙ above to set your API key
-                </div>
-              )}
-              {err && <div className="err-msg">⚠ {err}</div>}
             </div>
 
             {/* ── SAVED DECKS ── */}
@@ -1275,6 +1174,56 @@ Each question must be DIFFERENT — vary the topics and angles.` }],
         {/* ═══════════ TEACHER DASHBOARD ═══════════ */}
         {screen === "teacher-home" && (
           <div className="teacher-dash">
+            {/* ── AI DECK GENERATOR ── */}
+            <div className="section-label" style={{ marginTop: 0 }}>AI DECK GENERATOR</div>
+            <div className="ai-panel" style={{ marginBottom: 28 }}>
+              <div className="ai-head">
+                <span className="ai-chip">✦ AI</span>
+                <div className="ai-head-txt">TYPE ANY TOPIC → GET 8 CARDS</div>
+                <span style={{ marginLeft: "auto", fontSize: 10 }} title={apiKey ? "API key configured" : "No API key set"}>
+                  {apiKey ? "🔑" : "❌"}
+                </span>
+              </div>
+              <div className="ai-row">
+                <input
+                  className="ai-input"
+                  placeholder="e.g. Photosynthesis, Civil War, Derivatives..."
+                  value={topic}
+                  onChange={e => setTopic(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && generate()}
+                />
+                <button className="px-btn cyan" onClick={generate} disabled={loading || !topic.trim() || !apiKey}>
+                  {loading ? <><span className="spinner" /> GEN...</> : "✦ GO"}
+                </button>
+              </div>
+              {/* difficulty selector */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 7, color: "var(--muted)", letterSpacing: "0.1em" }}>🎓 LEVEL</span>
+                {["high school", "college", "expert"].map(level => (
+                  <button
+                    key={level}
+                    className="px-btn"
+                    style={{
+                      fontSize: 7,
+                      padding: "6px 12px",
+                      background: difficulty === level ? "var(--cyan)" : "transparent",
+                      color: difficulty === level ? "#000" : "var(--white)",
+                      borderColor: difficulty === level ? "var(--cyan)" : "var(--muted)",
+                    }}
+                    onClick={() => setDifficulty(level)}
+                  >
+                    {level === "high school" ? "📘" : level === "college" ? "📗" : "📕"} {level.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              {!apiKey && (
+                <div className="err-msg" style={{ color: "var(--gold)", marginTop: 8, fontSize: 7 }}>
+                  ⚙ Click the gear icon ⚙ above to set your API key
+                </div>
+              )}
+              {err && <div className="err-msg">⚠ {err}</div>}
+            </div>
+
             {/* quick stats */}
             <div className="td-stats">
               <div className="td-stat">
