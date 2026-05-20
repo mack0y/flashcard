@@ -5,7 +5,7 @@
 
 ## Stack
 - **Framework:** React JSX (single file: `flashcards.jsx`)
-- **AI API:** OpenRouter — `google/gemini-2.0-flash-001`
+- **AI API:** OpenRouter — `openrouter/owl-alpha` (free model)
 - **CDN test setup:** `index.html` (loads `flashcards.jsx` via Babel standalone with module transform)
 
 ## Features
@@ -32,8 +32,7 @@
   - **8–6s:** Green bar, white text, normal tick
   - **5–3s:** Orange bar, gold text, normal tick
   - **2–0s:** Red bar (urgent), red pulsing text, urgent high-pitch tick
-- 3 preset decks: Math / Algebra (📐), World History (🌍), English / Vocabulary (📚)
-- ✦ AI deck generator — type any topic, pick difficulty level, get 8 AI-generated cards
+- ✦ AI deck generator — type any topic, pick difficulty level, get 8 AI-generated cards (teacher mode only now)
 - 🎓 Difficulty selector for AI: high school (📘), college (📗), expert (📕)
 - 🔄 `seed=${Date.now()}` in AI prompt ensures unique questions every generation, with explicit instruction to vary topics/angles
 - 🧠 `max_tokens: 700` — plenty for 8 cards (~250–400 tokens needed), avoids OpenRouter free tier limit (max 988)
@@ -62,6 +61,7 @@
 
 #### Teacher Dashboard
 - 👨‍🏫 **Separate teacher mode** at `/teacher` URL path — no links or hints visible on student mode (`/`)
+- ✦ **AI Deck Generator** at the top of teacher dashboard — topic input, GO button, difficulty selector (high school/college/expert)
 - 📊 **Quick Stats** — total sessions, cards studied, average score across all sessions
 - 📋 **Saved Decks manager** — view all AI-generated decks with STUDY and DELETE buttons
 - 📊 **Session History table** — date, deck name, score (color-coded), known/review counts
@@ -74,6 +74,14 @@
 - 🔄 **Navigation**: Teacher can study decks from dashboard → study screen → results → back to dashboard
   - Header shows `◀ DASHBOARD` when on student/study/results screens
   - Header shows `👤 STUDENT VIEW` when on dashboard (switches to student home)
+
+#### Student Mode
+- 🎓 **Student mode** is the default at `/` — clean study-only interface
+- 📋 **Only saved decks** are shown (decks created by teacher via AI generator)
+- ❌ No preset decks (removed Math, World History, English)
+- ❌ No AI deck generator — students cannot create decks
+- ❌ No teacher links or hints visible
+- ✏️ Hero subtitle: "Pick a deck to study."
 
 ## Persistence (localStorage)
 - `fq_api_key` — OpenRouter API key
