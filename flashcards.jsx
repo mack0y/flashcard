@@ -68,6 +68,7 @@ class SoundEngine {
   // ── reveal arpeggio (triumphant fanfare) ──
   playReveal() {
     if (!this.ctx) return;
+    this._testTone();
     // punchy ascending fanfare
     [262, 330, 392, 494, 523, 659, 784, 1047].forEach((f, i) => this._note(f, i * 0.05, 0.22, "square", 0.28));
     // sparkle shimmer on top
@@ -76,6 +77,17 @@ class SoundEngine {
     this._note(262, 0.4, 0.15, "sawtooth", 0.08);
     this._note(330, 0.4, 0.15, "sawtooth", 0.08);
     this._note(392, 0.4, 0.15, "sawtooth", 0.08);
+  }
+
+  // ── ultra-simple test tone (no gain envelope) ──
+  _testTone() {
+    if (!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    o.type = "square";
+    o.frequency.value = 440;
+    o.connect(this.ctx.destination);
+    o.start();
+    o.stop(this.ctx.currentTime + 0.3);
   }
 
   // ── ambient music — accepts style: "calm" | "triumphant" | "mysterious" ──
