@@ -913,7 +913,7 @@ export default function FlashcardApp() {
           "X-Title": "FlashQuest",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "openrouter/free",
           max_tokens: 700,
           messages: [{ role: "user", content:
             `Generate 8 ${difficulty} flashcards on: "${topic}". seed=${Date.now()}
@@ -1008,7 +1008,7 @@ Each question must be DIFFERENT from any previous run — vary the topics and an
               </div>
               <div style={{ fontSize: 7, color: "var(--muted)", lineHeight: 1.8, marginTop: 12 }}>
                 Get your free API key at <span style={{ color: "var(--cyan)" }}>openrouter.ai/keys</span>
-                — Model: <span style={{ color: "var(--green)" }}>Gemini 2.0 Flash</span>
+                — Model: <span style={{ color: "var(--green)" }}>openrouter/free</span> — auto-routes to free models, no credit cost
                 {apiKey ? (
                   <span style={{ color: "var(--green)", display: "block", marginTop: 4 }}>✓ Key saved to browser storage</span>
                 ) : (
