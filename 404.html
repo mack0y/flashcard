@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlashQuest</title>
+  <!-- React + ReactDOM from CDN (UMD build — no build tools needed) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel standalone — transpiles JSX in the browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    // Fetch flashcards.jsx, patch the import/export, transpile with Babel, and render.
+    (async () => {
+      const src = await fetch('flashcards.jsx').then(r => r.text());
+
+      // Patch: replace ES module syntax with plain JS for the browser.
+      // 1) "import { useState, ... } from 'react'" → destructure from React global
+      // 2) "export default function App(...)"  →  "window.FlashcardApp = function App(...)"
+      const patched = src
+        .replace(/^import\s*\{([^}]+)\}\s*from\s*['"][^'"]+['"]\s*;?\s*/m, 'const { $1 } = React;')
+        .replace(/^export\s+default\s+/m, 'window.FlashcardApp = ');
+
+      // Transpile JSX → JS
+      const result = Babel.transform(patched, { presets: ['react'] });
+      eval(result.code);
+
+      // Render
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(FlashcardApp));
+    })();
+  </script>
+</body>
+</html>

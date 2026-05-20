@@ -668,7 +668,7 @@ body{animation:crt 8s ease-in-out infinite;}
 //  COMPONENT
 // ─────────────────────────────────────────────
 export default function FlashcardApp() {
-  const isTeacher = typeof window !== 'undefined' && window.location.pathname.startsWith('/teacher');
+  const isTeacher = typeof window !== 'undefined' && window.location.pathname.split('/').includes('teacher');
   const [screen, setScreen] = useState(isTeacher ? "teacher-home" : "home");
   const [deckName, setDeckName] = useState("");
   const [cards, setCards] = useState([]);
